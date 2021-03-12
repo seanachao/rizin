@@ -218,8 +218,6 @@ typedef struct {
 	char *cmd;
 } RzCoreGadget;
 
-RZ_API void rz_core_gadget_free(RzCoreGadget *g);
-
 typedef struct rz_core_task_t RzCoreTask;
 
 /**
@@ -382,9 +380,6 @@ typedef struct rz_core_item_t {
 	char *fcnname;
 } RzCoreItem;
 
-RZ_API void rz_core_item_free(RzCoreItem *ci);
-
-RZ_API int rz_core_bind(RzCore *core, RzCoreBind *bnd);
 
 typedef struct rz_core_cmpwatch_t {
 	ut64 addr;
@@ -397,6 +392,12 @@ typedef struct rz_core_cmpwatch_t {
 typedef int (*RzCoreSearchCallback)(RzCore *core, ut64 from, ut8 *buf, int len);
 
 #ifdef RZ_API
+RZ_API void rz_core_item_free(RzCoreItem *ci);
+
+RZ_API int rz_core_bind(RzCore *core, RzCoreBind *bnd);
+
+RZ_API void rz_core_gadget_free(RzCoreGadget *g);
+
 RZ_API bool rz_core_plugin_init(RzCore *core);
 RZ_API bool rz_core_plugin_add(RzCore *core, RzCorePlugin *plugin);
 RZ_API bool rz_core_plugin_fini(RzCore *core);
