@@ -423,6 +423,87 @@ RZ_API void rz_bin_trycatch_free(RzBinTrycatch *tc);
 
 typedef struct {
 	/**
+	 * The first address that is covered by the given source file,
+	 * or, if file == NULL, the first address **not contained** by the previous record.
+	 */
+	ut64 address;
+
+	/**
+	 * If NULL, then indicates the source filename for the given address and the following.
+	 * If NULL, then indicates that the previous record stops here.
+	 * Such a case corresponds for example to what DW_LNE_end_sequence emits in Dwarf.
+	 */
+	char *file;
+} RzBinSourceFile;
+
+typedef struct {
+	/**
+	 * The first address that is covered by the given line and column,
+	 * or, if line == 0, the first address **not contained** by the previous record.
+	 */
+	ut64 address;
+
+	/**
+	 * If > 0, then indicates the line for the given address and the following.
+	 * If == 0, then indicates that the previous record stops here.
+	 * Such a case corresponds for example to what DW_LNE_end_sequence emits in Dwarf.
+	 *
+	 * 32bit for this value is an intentional decision to lower memory consumption.
+	 */
+	ut32 line;
+
+	/**
+	 * If > 0, then indicates the column.
+	 * If == 0, then no column information is known.
+	 *
+	 * 32bit for this value is an intentional decision to lower memory consumption.
+	 */
+	ut32 column;
+} RzBinSourceLine;
+
+typedef struct {
+	/**
+	 * \brief All source file references for given adresses
+	 *
+	 * These elements must be sorted by address and addresses must be unique,
+	 * so binary search can be applied.
+	 */
+	RzBinSourceFile *files;
+	size_t files_count;
+
+	/**
+	 * \brief All source file references for given adresses
+	 *
+	 * These elements must be sorted by address and addresses must be unique, so binary search can be applied.
+	 * Source file information is not contained within this array because source file changes
+	 * are generally much sparser than line changes.
+	 */
+	RzBinSourceLine *lines;
+	size_t lines_count;
+} RzBinSourceLineInfo;
+
+/**
+ * Temporary data structure for building an RzBinSourceLineInfo.
+ * The vectors in here may be filled unsorted and will be sorted in the finalization step.
+ */
+typedef struct {
+	RzVector /*<RzBinSourceFile>*/ files;
+	RzVector /*<RzBinSourceLine>*/ lines;
+} RzBinSourceLineInfoBuilder;
+
+RZ_API void rz_bin_source_line_info_builder_init(RzBinSourceLineInfoBuilder *builder);
+RZ_API void rz_bin_source_line_info_builder_fini(RzBinSourceLineInfoBuilder *builder);
+RZ_API void rz_bin_source_line_info_builder_push_file_sample(RzBinSourceLineInfoBuilder *builder, ut64 address, RZ_NULLABLE const char *file);
+RZ_API void rz_bin_source_line_info_builder_push_line_sample(RzBinSourceLineInfoBuilder *builder, ut64 address, ut32 line, ut32 column);
+RZ_API RzBinSourceLineInfo *rz_bin_source_line_info_builder_build_and_fini(RzBinSourceLineInfoBuilder *builder);
+
+RZ_API void rz_bin_source_line_info_free(RzBinSourceLineInfo *sli);
+RZ_API const RzBinSourceFile *rz_bin_source_line_info_get_file_at(RzBinSourceLineInfo *sli, ut64 addr);
+RZ_API const RzBinSourceLine *rz_bin_source_line_info_get_line_at(RzBinSourceLineInfo *sli, ut64 addr);
+
+// OLD!!!!!!!!!!
+typedef struct {
+	/**
 	 * The first address that is covered by the given line and column,
 	 * or, if line == 0, the first address **not contained** by the previous record.
 	 */
@@ -443,7 +524,6 @@ typedef struct {
 	 */
 	unsigned int column;
 } RzBinSourceRow;
-
 RZ_API void rz_bin_source_row_free(RzBinSourceRow *row);
 
 typedef struct rz_bin_plugin_t {
