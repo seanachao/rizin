@@ -100,17 +100,38 @@ RZ_API RzBinSourceLineInfo *rz_bin_source_line_info_builder_build_and_fini(RzBin
 			rz_pvector_push(&sorter, &initial_files[i]);
 		}
 		rz_pvector_sort(&sorter, file_cmp);
+		ut64 dont_close_here = UT64_MAX; // to avoid closing on valid positions
 		for (size_t i = 0; i < initial_files_count; i++) {
 			RzBinSourceFile *new_file = rz_pvector_at(&sorter, i);
-			if (i == 0 || r->files[r->files_count - 1].address != new_file->address) {
-				// new address, just move this entry to the final array
+			if (!r->files_count || r->files[r->files_count - 1].address != new_file->address) {
+				// new address, just move this entry to the final array, ...
+				if (r->files_count) {
+					RzBinSourceFile *prev = &r->files[r->files_count - 1];
+					if ((!prev->file && !new_file->file) || (prev->file && new_file->file && !strcmp(prev->file, new_file->file))) {
+						// ... unless it is identical to the previous
+						dont_close_here = new_file->address;
+						free(new_file->file);
+						continue;
+					}
+				}
+				if (!new_file->file && dont_close_here != UT64_MAX && new_file->address == dont_close_here) {
+					// extended record from above with explicit filename
+					continue;
+				}
 				r->files[r->files_count++] = *new_file;
 			} else if (new_file->file) {
 				// same address as the previous and we are not a closing sample, decide how to resolve this...
 				RzBinSourceFile *prev = &r->files[r->files_count - 1];
 				if (!prev->file) {
 					// we bring the string!
-					prev->file = new_file->file;
+					if (r->files_count >= 2 && r->files[r->files_count - 2].file && !strcmp(r->files[r->files_count - 2].file, new_file->file)) {
+						// but actually we just cancel out the previous closing entry and
+						// continue the non-closing one before that.
+						r->files_count--;
+						free(new_file->file);
+					} else {
+						prev->file = new_file->file;
+					}
 				} else if (strcmp(prev->file, new_file->file) < 0) {
 					// both have a string. This should not happen with debug info that actually makes sense,
 					// but it's supplied from outside so we never know.

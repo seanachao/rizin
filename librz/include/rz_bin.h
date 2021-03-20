@@ -421,7 +421,7 @@ typedef struct rz_bin_trycatch_t {
 RZ_API RzBinTrycatch *rz_bin_trycatch_new(ut64 source, ut64 from, ut64 to, ut64 handler, ut64 filter);
 RZ_API void rz_bin_trycatch_free(RzBinTrycatch *tc);
 
-typedef struct {
+typedef struct rz_bin_source_file_t {
 	/**
 	 * The first address that is covered by the given source file,
 	 * or, if file == NULL, the first address **not contained** by the previous record.
@@ -436,7 +436,7 @@ typedef struct {
 	char *file;
 } RzBinSourceFile;
 
-typedef struct {
+typedef struct rz_bin_source_line_t {
 	/**
 	 * The first address that is covered by the given line and column,
 	 * or, if line == 0, the first address **not contained** by the previous record.
@@ -461,7 +461,7 @@ typedef struct {
 	ut32 column;
 } RzBinSourceLine;
 
-typedef struct {
+typedef struct rz_bin_source_line_info_t {
 	/**
 	 * \brief All source file references for given adresses
 	 *
@@ -486,7 +486,7 @@ typedef struct {
  * Temporary data structure for building an RzBinSourceLineInfo.
  * The vectors in here may be filled unsorted and will be sorted in the finalization step.
  */
-typedef struct {
+typedef struct rz_bin_source_line_info_builder_t {
 	RzVector /*<RzBinSourceFile>*/ files;
 	RzVector /*<RzBinSourceLine>*/ lines;
 } RzBinSourceLineInfoBuilder;

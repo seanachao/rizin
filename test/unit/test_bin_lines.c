@@ -25,7 +25,7 @@ bool test_source_line_info_builder() {
 		rz_bin_source_line_info_builder_init(&bob);
 
 		// push the samples in random orders
-#define SAMPLES_COUNT 15
+#define SAMPLES_COUNT 18
 		bool samples_applied[SAMPLES_COUNT] = { 0 };
 		for (size_t i = 0; i < SAMPLES_COUNT; i++) {
 			size_t j = rand() % SAMPLES_COUNT;
@@ -38,45 +38,54 @@ bool test_source_line_info_builder() {
 				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1000, "mayan.c");
 				break;
 			case 1:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1010, NULL);
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1005, NULL);
 				break;
 			case 2:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1010, "panoramas.c");
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1005, "mayan.c");
 				break;
 			case 3:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1020, "pyramid.c");
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1010, NULL);
 				break;
 			case 4:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1020, "pyjamas.c");
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1010, "panoramas.c");
 				break;
 			case 5:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1080, NULL);
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1020, "pyramid.c");
 				break;
 			case 6:
-				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x2000, "pyramania.c");
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1020, "pyjamas.c");
 				break;
 			case 7:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1000, 42, 3);
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1080, NULL);
 				break;
 			case 8:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1001, 42, 5);
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x1090, NULL);
 				break;
 			case 9:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1002, 1337, 1);
+				rz_bin_source_line_info_builder_push_file_sample(&bob, 0x2000, "pyramania.c");
 				break;
 			case 10:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1002, 123, 2);
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1000, 42, 3);
 				break;
 			case 11:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1005, 23, 0);
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1001, 42, 5);
 				break;
 			case 12:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1005, 0, 0);
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1002, 1337, 1);
 				break;
 			case 13:
-				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1100, 0, 0);
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1002, 123, 2);
 				break;
 			case 14:
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1005, 23, 0);
+				break;
+			case 15:
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1005, 0, 0);
+				break;
+			case 16:
+				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1100, 0, 0);
+				break;
+			case 17:
 				rz_bin_source_line_info_builder_push_line_sample(&bob, 0x1103, 2, 2);
 				break;
 			default:

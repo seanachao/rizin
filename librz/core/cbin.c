@@ -1155,24 +1155,29 @@ static bool bin_dwarf(RzCore *core, RzBinFile *binfile, PJ *pj, int mode) {
 				rz_list_free(aranges);
 			}
 		}
-		RzList *lines = rz_bin_dwarf_parse_line(binfile, info,
-			RZ_BIN_DWARF_LINE_INFO_MASK_ROWS | (mode == RZ_MODE_PRINT ? RZ_BIN_DWARF_LINE_INFO_MASK_OPS : 0));
+		RzBinDwarfLineInfo *lines = rz_bin_dwarf_parse_line(binfile, info,
+			RZ_BIN_DWARF_LINE_INFO_MASK_LINES | (mode == RZ_MODE_PRINT ? RZ_BIN_DWARF_LINE_INFO_MASK_OPS : 0));
 		rz_bin_dwarf_debug_info_free(info);
 		if (lines) {
 			if (mode == RZ_MODE_PRINT) {
-				rz_core_bin_dwarf_print_lines(lines);
+				rz_core_bin_dwarf_print_line_units(lines->units);
 			}
 			// move all produced rows out
 			list = ownlist = rz_list_newf((RzListFree)rz_bin_source_row_free);
-			RzListIter *it;
-			RzBinDwarfLineInfo *li;
-			rz_list_foreach (lines, it, li) {
-				if (!li->rows) {
+			for (size_t i = 0; i < lines->lines->lines_count; i++) {
+				const RzBinSourceLine *l = &lines->lines->lines[i]; // lol
+				const RzBinSourceFile *f = rz_bin_source_line_info_get_file_at(lines->lines, l->address);
+				if (!f || !f->file) {
 					continue;
 				}
-				rz_list_join(list, li->rows);
+				RzBinSourceRow *row = RZ_NEW0(RzBinSourceRow);
+				row->address = l->address;
+				row->line = l->line;
+				row->column = l->column;
+				row->file = strdup(f->file);
+				rz_list_push(list, row);
 			}
-			rz_list_free(lines);
+			rz_bin_dwarf_line_info_free(lines);
 		}
 		rz_bin_dwarf_debug_abbrev_free(da);
 
