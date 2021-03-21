@@ -709,10 +709,10 @@ bool test_dwarf3_cpp_many_comp_units(void) {
 		{ 0x11f7, 10, 12 },
 		{ 0x1206, 12, 23 },
 		{ 0x1212, 13, 1 },
-		{ 0x1228, 7, 0 },
+		{ 0x1228, 7, 6 },
 		{ 0x1234, 7, 26 },
 		{ 0x1239, 7, 28 },
-		{ 0x123b, 15, 0 },
+		{ 0x123b, 15, 12 },
 		{ 0x1248, 18, 16 },
 		{ 0x125d, 18, 5 },
 		{ 0x1261, 19, 15 },
@@ -931,7 +931,7 @@ bool test_dwarf2_cpp_many_comp_units(void) {
 		{ 0x1228, 7, 6 },
 		{ 0x1234, 7, 26 },
 		{ 0x1239, 7, 28 },
-		{ 0x123b, 15, 0 },
+		{ 0x123b, 15, 12 },
 		{ 0x1248, 18, 16 },
 		{ 0x125d, 18, 5 },
 		{ 0x1261, 19, 15 },
@@ -946,7 +946,7 @@ bool test_dwarf2_cpp_many_comp_units(void) {
 		{ 0x12b5, 23, 23 },
 		{ 0x12ba, 23, 24 },
 		{ 0x12bf, 24, 1 },
-		{ 0x12c6, 2, 0 },
+		{ 0x12c6, 2, 3 },
 		{ 0x12d2, 2, 12 },
 		{ 0x12e0, 2, 15 },
 		{ 0x12e3, 0, 0 },
@@ -1498,32 +1498,6 @@ bool test_big_endian_dwarf2(void) {
 	assert_source_lines_eq(li->lines, RZ_ARRAY_SIZE(test_lines), test_lines);
 	rz_bin_dwarf_line_info_free(li);
 
-#if 0
-	RzList *line_list = rz_bin_dwarf_parse_line(bin->cur, NULL, RZ_BIN_DWARF_LINE_INFO_MASK_OPS | RZ_BIN_DWARF_LINE_INFO_MASK_ROWS);
-	mu_assert_eq(rz_list_length(line_list), 1, "Amount of line information parse doesn't match");
-	RzBinDwarfLineInfo *li = rz_list_first(line_list);
-	mu_assert_eq(rz_list_length(li->rows), 475, "rows count");
-
-	const RzBinSourceRow test_rows[] = {
-		{ 0x10000ec4, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 30, 1 },
-		{ 0x10000f18, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 31, 5 },
-		{ 0x10000f18, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 31, 11 },
-		{ 0x10000f28, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 32, 5 },
-		{ 0x10000f28, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 32, 22 },
-		{ 0x10000f2c, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 31, 11 },
-		{ 0x10000f30, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 32, 13 },
-		{ 0x10000f34, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 34, 17 },
-		{ 0x10000f38, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 53, 22 },
-		{ 0x10000f44, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 38, 54 },
-		{ 0x10000f44, "/home/hound/Crosscompilation/powerpc64-linux-musl-cross/powerpc64-linux-musl/include/c++/9.3.0/bits/char_traits.h", 335, 2 },
-		{ 0x10000f44, "/home/hound/Crosscompilation/powerpc64-linux-musl-cross/powerpc64-linux-musl/include/c++/9.3.0/ostream", 570, 18 },
-		{ 0x10000f5c, "/home/hound/Crosscompilation/powerpc64-linux-musl-cross/powerpc64-linux-musl/include/c++/9.3.0/ostream", 572, 14 },
-		{ 0x10000f60, "/home/hound/Projects/r2test/dwarf/cpp/sudoku_cpp/grid.cpp", 42, 22 },
-		{ 0x10000f60, "/home/hound/Crosscompilation/powerpc64-linux-musl-cross/powerpc64-linux-musl/include/c++/9.3.0/bits/char_traits.h", 335, 2 },
-		{ 0x10000f60, "/home/hound/Crosscompilation/powerpc64-linux-musl-cross/powerpc64-linux-musl/include/c++/9.3.0/ostream", 570, 18 }
-	};
-#endif
-
 	rz_bin_free(bin);
 	rz_io_free(io);
 	mu_end;
@@ -1585,6 +1559,7 @@ bool test_dwarf3_aranges(void) {
 }
 
 bool all_tests() {
+	srand(time(0));
 	mu_run_test(test_dwarf3_c_basic);
 	mu_run_test(test_dwarf_cpp_empty_line_info);
 	mu_run_test(test_dwarf2_cpp_many_comp_units);

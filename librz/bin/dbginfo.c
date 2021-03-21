@@ -158,6 +158,11 @@ RZ_API RzBinSourceLineInfo *rz_bin_source_line_info_builder_build_and_fini(RzBin
 	}
 
 	if (initial_lines_count) {
+		// Lines packing works slightly different than files.
+		// Samples at a certain address will never be dropped to extend a previous sample.
+		// That is because such a case does not seem very realistic for lines, as they are expected
+		// to fluctuate quite a lot whereas files often stay the same when functions from the same file
+		// are directly after each other.
 		RzPVector sorter;
 		rz_pvector_init(&sorter, NULL);
 		RzBinSourceLine *initial_lines = rz_vector_flush(&builder->lines);
@@ -169,18 +174,14 @@ RZ_API RzBinSourceLineInfo *rz_bin_source_line_info_builder_build_and_fini(RzBin
 		rz_pvector_sort(&sorter, line_cmp);
 		for (size_t i = 0; i < initial_lines_count; i++) {
 			RzBinSourceLine *new_line = rz_pvector_at(&sorter, i);
-			if (i == 0 || r->lines[r->lines_count - 1].address != new_line->address) {
+			if (!r->lines_count || r->lines[r->lines_count - 1].address != new_line->address) {
 				// new address, just move this entry to the final array
 				r->lines[r->lines_count++] = *new_line;
-			} else if (new_line->line) {
+			} else if (r->lines_count) {
 				// same address as the previous and we are not a closing sample, decide how to resolve this...
 				RzBinSourceLine *prev = &r->lines[r->lines_count - 1];
-				if (!prev->line) {
+				if (new_line->line > prev->line || (new_line->line == prev->line && new_line->column > prev->column)) {
 					// we supply the line!
-					prev->line = new_line->line;
-				} else if (new_line->line > prev->line) {
-					// both have a non-closing line entry. This should not happen with debug info that actually makes sense,
-					// but it's supplied from outside so we never know.
 					// comparison is used to resolve non-determinism from the unstable (possibly randomized) quicksort.
 					*prev = *new_line;
 				}

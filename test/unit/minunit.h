@@ -135,7 +135,7 @@ void snprint_mem(char *out, size_t out_size, const ut8 *buf, size_t len) {
 		ut64 exp__ = (ut64)(expected); \
 		if ((exp__) != (act__)) { \
 			char _meqstr[MU_BUF_SIZE]; \
-			snprintf(_meqstr, MU_BUF_SIZE, "%s: expected 0x%" PFMT64x ", got 0x%" PFMT64x ".", (message), (ut64)(exp__), (ut64)(act__)); \
+			snprintf(_meqstr, MU_BUF_SIZE, "%s: expected %" PFMT64u ", got %" PFMT64u ".", (message), (ut64)(exp__), (ut64)(act__)); \
 			mu_assert(_meqstr, false); \
 		} \
 	} while (0)

@@ -17,7 +17,7 @@ bool test_source_line_info_builder_empty() {
 	mu_end;
 }
 
-#define FUZZ_COUNT 1000
+#define FUZZ_COUNT 200
 
 bool test_source_line_info_builder() {
 	for (size_t f = 0; f < FUZZ_COUNT; f++) {
@@ -32,6 +32,7 @@ bool test_source_line_info_builder() {
 			while (samples_applied[j]) {
 				j = (j + 1) % SAMPLES_COUNT;
 			}
+#undef SAMPLES_COUNT
 			samples_applied[j] = true;
 			switch (j) {
 			case 0:
@@ -135,6 +136,58 @@ bool test_source_line_info_builder() {
 
 		rz_bin_source_line_info_free(li);
 	}
+	mu_end;
+}
+
+bool test_source_line_info_builder_fuzz_lines() {
+	for (size_t f = 0; f < FUZZ_COUNT; f++) {
+		RzBinSourceLineInfoBuilder bob;
+		rz_bin_source_line_info_builder_init(&bob);
+
+		// generate a lot of random samples and check them against a
+		// super slow but super simple equivalent algorithm
+#define SAMPLES_COUNT 0x200
+		RzBinSourceLine samples[SAMPLES_COUNT] = { 0 };
+		HtUP *unique_addrs = ht_up_new0();
+		size_t unique_addrs_count = 0;
+		for (size_t i = 0; i < SAMPLES_COUNT; i++) {
+			samples[i].address = rand() % 0x100;
+			if (rand() % 10 > 2) {
+				// non-closing entry
+				samples[i].line = rand() % 42;
+				samples[i].column = rand() % 42;
+			}
+			if (ht_up_insert(unique_addrs, samples[i].address, NULL)) {
+				unique_addrs_count++;
+			}
+			rz_bin_source_line_info_builder_push_line_sample(&bob, samples[i].address, samples[i].line, samples[i].column);
+		}
+		RzBinSourceLineInfo *li = rz_bin_source_line_info_builder_build_and_fini(&bob);
+
+		// resulting count should be exactly the number of unique addresses
+		mu_assert_eq(li->lines_count, unique_addrs_count, "lines count");
+		for (size_t i = 0; i < li->lines_count; i++) {
+			RzBinSourceLine *actual = &li->lines[i];
+			ut64 addr = actual->address;
+			mu_assert_true(!!ht_up_find_kv(unique_addrs, addr, NULL), "addr");
+			RzBinSourceLine *l = NULL;
+			for (size_t j = 0; j < SAMPLES_COUNT; j++) {
+				RzBinSourceLine *c = &samples[j];
+				if (c->address != addr) {
+					continue;
+				}
+				if (!l || c->line > l->line || (c->line == l->line && c->column > l->column)) {
+					l = c;
+				}
+			}
+			mu_assert_eq(actual->line, l->line, "line");
+			mu_assert_eq(actual->column, l->column, "column");
+		}
+
+		ht_up_free(unique_addrs);
+		rz_bin_source_line_info_free(li);
+	}
+#undef SAMPLES_COUNT
 	mu_end;
 }
 
@@ -250,6 +303,7 @@ bool test_source_line_info_query() {
 bool all_tests() {
 	srand(time(0));
 	mu_run_test(test_source_line_info_builder_empty);
+	mu_run_test(test_source_line_info_builder_fuzz_lines);
 	mu_run_test(test_source_line_info_builder);
 	mu_run_test(test_source_line_info_query);
 	return tests_passed != tests_run;
